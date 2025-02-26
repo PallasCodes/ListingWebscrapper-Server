@@ -2,11 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 
+import { launch } from 'puppeteer'
+
 import { CreateListingDto } from './dto/create-listing.dto'
 import { UpdateListingDto } from './dto/update-listing.dto'
 import { Listing } from './entities/listing.entity'
 import { UserListing } from './entities/user-listing.entity'
 import { User } from 'src/auth/entities/user.entity'
+import { ListingLog } from './entities/listing-log.entity'
 
 @Injectable()
 export class ListingService {
@@ -15,6 +18,8 @@ export class ListingService {
     private readonly listingRepository: Repository<Listing>,
     @InjectRepository(UserListing)
     private readonly userListingRepository: Repository<UserListing>,
+    @InjectRepository(ListingLog)
+    private readonly listingLogRepository: Repository<ListingLog>,
   ) {}
 
   async create(createListingDto: CreateListingDto, user: User) {
@@ -25,7 +30,15 @@ export class ListingService {
     if (existingListing) {
       await this.registerUserListing(existingListing, user, createListingDto)
     } else {
-      existingListing = await this.listingRepository.save(createListingDto)
+      const { imgUrl, productTitle, price } = await this.scrappeAmazonProduct(
+        createListingDto.url,
+      )
+      existingListing = await this.listingRepository.save({
+        ...createListingDto,
+        imgUrl,
+        productTitle,
+      })
+      await this.listingLogRepository.save({ price, listing: existingListing })
     }
 
     return this.userListingRepository.save({
@@ -33,6 +46,53 @@ export class ListingService {
       user,
       updateFrecuency: createListingDto.updateFrecuency,
     })
+  }
+
+  async scrappeAmazonProduct(url: string): Promise<{
+    imgUrl: string
+    productTitle: string
+    price: number
+  }> {
+    const browser = await launch({})
+    const page = await browser.newPage()
+    await page.goto(url)
+
+    const getImgUrl = async () => {
+      const img = await page.locator('#landingImage').waitHandle()
+      const imgUrl = await img?.evaluate((el) => el.getAttribute('src'))
+      return imgUrl
+    }
+
+    const getProductTitle = async () => {
+      const productTitleElement = await page.locator('#productTitle').waitHandle()
+      const productTitle = (
+        await productTitleElement?.evaluate((el) => el.textContent)
+      ).trim()
+      return productTitle
+    }
+
+    const getPriceNumber = async () => {
+      const priceElement = await page.locator('.a-price-whole').waitHandle()
+      const priceText = await priceElement?.evaluate((el) => el.textContent)
+      const price = parseFloat(
+        priceText.replace('$', '').replace('.', '').replace(',', ''),
+      )
+      return price
+    }
+
+    const [imgUrl, productTitle, price] = await Promise.all([
+      getImgUrl(),
+      getProductTitle(),
+      getPriceNumber(),
+    ])
+
+    await browser.close()
+
+    return {
+      imgUrl,
+      productTitle,
+      price,
+    }
   }
 
   async registerUserListing(existingListing, user, createListingDto) {
