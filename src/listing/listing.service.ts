@@ -125,10 +125,17 @@ export class ListingService {
   }
 
   async remove(id: string, user: User) {
-    const listing = await this.userListingRepository.findOneByOrFail({
+    const listing = await this.userListingRepository.findOneBy({
       id,
       user: { id: user.id },
     })
-    return this.userListingRepository.remove(listing)
+
+    if (!listing) {
+      throw new BadRequestException('No listing found with ID: ' + id)
+    }
+
+    await this.userListingRepository.remove(listing)
+
+    return { message: 'Listing deleted' }
   }
 }
