@@ -23,6 +23,7 @@ export class ListingService {
   ) {}
 
   async create(createListingDto: CreateListingDto, user: User) {
+    // TODO: validate accesible url
     let existingListing = await this.listingRepository.findOne({
       where: { url: createListingDto.url },
     })
@@ -123,7 +124,11 @@ export class ListingService {
     return `This action updates a #${id} listing`
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} listing`
+  async remove(id: string, user: User) {
+    const listing = await this.userListingRepository.findOneByOrFail({
+      id,
+      user: { id: user.id },
+    })
+    return this.userListingRepository.remove(listing)
   }
 }
