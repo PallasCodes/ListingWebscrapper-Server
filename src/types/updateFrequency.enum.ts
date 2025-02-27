@@ -1,4 +1,4 @@
-export enum UpdateFrecuency {
+export enum updateFrequency {
   '1HR' = 1,
   '2HRS' = 2,
   '6HRS' = 6,

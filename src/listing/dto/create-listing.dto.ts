@@ -1,6 +1,6 @@
 import { IsEnum, IsUrl } from 'class-validator'
 import { OriginWebsite } from 'src/types/originWebsites.enum'
-import { UpdateFrecuency } from 'src/types/updateFrecuency.enum'
+import { updateFrequency } from 'src/types/updateFrequency.enum'
 
 export class CreateListingDto {
   @IsUrl()
@@ -9,6 +9,6 @@ export class CreateListingDto {
   @IsEnum(OriginWebsite)
   website: OriginWebsite
 
-  @IsEnum(UpdateFrecuency)
-  updateFrecuency: UpdateFrecuency
+  @IsEnum(updateFrequency)
+  updateFrequency: updateFrequency
 }

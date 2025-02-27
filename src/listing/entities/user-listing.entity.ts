@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import { User } from 'src/auth/entities/user.entity'
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Listing } from './listing.entity'
-import { UpdateFrecuency } from 'src/types/updateFrecuency.enum'
+import { updateFrequency } from 'src/types/updateFrequency.enum'
 
 @Entity('users_listings')
 export class UserListing {
@@ -22,6 +22,6 @@ export class UserListing {
   listing: Listing
 
   @ApiProperty()
-  @Column('enum', { enum: UpdateFrecuency })
-  updateFrecuency: UpdateFrecuency
+  @Column('enum', { enum: updateFrequency })
+  updateFrequency: updateFrequency
 }

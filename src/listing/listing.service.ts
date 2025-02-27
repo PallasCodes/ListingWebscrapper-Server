@@ -44,7 +44,7 @@ export class ListingService {
     return this.userListingRepository.save({
       listing: existingListing,
       user,
-      updateFrecuency: createListingDto.updateFrecuency,
+      updateFrequency: createListingDto.updateFrequency,
     })
   }
 
@@ -102,8 +102,8 @@ export class ListingService {
 
     if (existingUserListing) {
       throw new BadRequestException('Listing already exists')
-    } else if (existingListing.updateFrecuency > createListingDto.updateFrecuency) {
-      existingListing.updateFrecuency = createListingDto.updateFrecuency
+    } else if (existingListing.updateFrequency > createListingDto.updateFrequency) {
+      existingListing.updateFrequency = createListingDto.updateFrequency
       await this.listingRepository.save(existingListing)
     }
   }
