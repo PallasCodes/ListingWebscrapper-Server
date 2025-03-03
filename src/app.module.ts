@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
+
 import { AuthModule } from './auth/auth.module'
-import { ListingModule } from './listing/listing.module';
+import { ListingModule } from './listing/listing.module'
 
 @Module({
   imports: [

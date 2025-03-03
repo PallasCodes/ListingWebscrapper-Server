@@ -31,9 +31,19 @@ export class Listing {
   @Column('text', { nullable: true })
   productTitle: string
 
-  @Column('enum', { enum: updateFrequency, default: updateFrequency['24HRS'] })
-  @ApiProperty({ enum: updateFrequency })
-  updateFrequency: updateFrequency
+  // @Column('enum', { enum: updateFrequency, default: updateFrequency['24HRS'] })
+  // @ApiProperty({ enum: updateFrequency })
+  // updateFrequency: updateFrequency
+  // TODO: use enum and fix error in select used in cron job
+  @Column('integer', { default: 24 })
+  @ApiProperty()
+  updateFrequency: number
+
+  @Column('timestamp', {
+    default: () => "DATE_TRUNC('hour', NOW() + INTERVAL '30 minutes')",
+  })
+  @ApiProperty()
+  lastUpdate: Date
 
   @ApiProperty()
   @OneToMany(() => UserListing, (userListing) => userListing.listing)
