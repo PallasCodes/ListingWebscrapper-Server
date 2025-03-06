@@ -56,7 +56,7 @@ export class ListingService {
   }> {
     const browser = await launch({})
     const page = await browser.newPage()
-    await page.goto(url)
+    await page.goto(url, { timeout: 60000, waitUntil: 'domcontentloaded' })
 
     const getImgUrl = async () => {
       const img = await page.locator('#landingImage').waitHandle()

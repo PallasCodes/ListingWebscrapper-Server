@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Cron, CronExpression } from '@nestjs/schedule'
+import { Cron, CronExpression, ScheduleModule } from '@nestjs/schedule'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 
@@ -19,14 +19,15 @@ export class ListingTasks {
 
   private readonly logger = new Logger(ListingTasks.name)
 
-  @Cron('0 * * * *')
+  // @Cron('0 * * * *')
+  // @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
     const listings = await this.listingRepository
       .createQueryBuilder('listing')
       .where("listing.lastUpdate + INTERVAL '1 hour' * listing.updateFrequency <= NOW()")
       .getMany()
 
-    listings.forEach(async (listing) => {
+    const listingsPromises = listings.map(async (listing) => {
       const { price } = await this.listingService.scrappeAmazonProduct(listing.url)
       await this.listingRepository.save({
         ...listing,
@@ -35,6 +36,8 @@ export class ListingTasks {
       await this.listingLogRepository.save({ price, listing })
     })
 
-    this.logger.debug('LISTINGS UPDATED: ' + listings.length)
+    await Promise.all(listingsPromises)
+
+    this.logger.debug('UPDATED LISTINGS: ' + listings.length)
   }
 }
